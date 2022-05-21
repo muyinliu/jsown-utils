@@ -60,6 +60,60 @@
   "\(jsown-update-in object \(\"key1\" \"key2\"\) \"new-value\"\)"
   `(setf (json-vals ,object ,@key-list) ,new-value))
 
+;;; serialize utils
+
+(defmethod to-jsown ((object integer))
+  object)
+
+(defmethod to-jsown ((object fixnum))
+  object)
+
+(defmethod to-jsown ((object bignum))
+  object)
+
+(defmethod to-jsown ((object ratio))
+  object)
+
+(defmethod to-jsown ((object string))
+  object)
+
+(defmethod to-jsown ((object single-float))
+  object)
+
+(defmethod to-jsown ((object double-float))
+  object)
+
+(defmethod to-jsown ((object list))
+  (mapcar #'to-jsown
+          object))
+
+(defmethod to-jsown ((object vector))
+  (loop
+    for element across object
+    collect (to-jsown element)))
+
+(defmethod to-jsown ((object hash-table))
+  (append (list :obj)
+          (maphash #'(lambda (key value)
+                       (cons (write-to-string key)
+                             (to-jsown value)))
+                   object)))
+
+(defmethod to-jsown ((object t))
+  (append (list :obj)
+          (mapcar #'(lambda (slot)
+                      (let* ((slot-name (closer-mop:slot-definition-name slot))
+                             (slot-value (slot-value object slot-name)))
+                        (cons (string-downcase
+                               (symbol-name slot-name))
+                              (to-jsown slot-value))))
+                  (closer-mop:class-slots (class-of object)))))
+
+(defmethod to-json ((object t))
+  "General-purpose to-json for all objects."
+  (jsown:to-json (to-jsown object)))
+
+
 (export 'pretty-json)
 (export 'pprint-json)
 (export 'json-val)

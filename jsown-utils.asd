@@ -4,7 +4,8 @@
   :version "0.0.1"
   :author "Muyinliu Xing <muyinliu@gmail.com>"
   :license "MIT"
-  :depends-on ("jsown")
+  :depends-on ("jsown"
+               "closer-mop")
   :components ((:static-file "jsown-utils.asd")
                (:module "src"
                         :serial t
