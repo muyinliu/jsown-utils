@@ -42,14 +42,19 @@
 
 ;;; accessor utils
 
-(defmacro json-val (object key)
-  `(cdr (assoc ,key (cdr ,object) :test #'equal)))
+(defmacro json-val (object key-name &key key)
+  (let ((result-symbol (gensym "result")))
+    `(let ((,result-symbol (cdr (assoc ,key-name (cdr ,object) :test #'equal))))
+       (when ,result-symbol
+         (if ,key
+             (funcall ,key ,result-symbol)
+             ,result-symbol)))))
 
 (defmacro json-vals (object &rest keys)
-  (reduce #'(lambda (object key)
-              `(json-val ,object ,key))
-          keys
-          :initial-value object))
+  `(reduce #'(lambda (object key)
+               (json-val object key))
+           ',keys
+           :initial-value ,object))
 
 (defmacro json-update-in (object key-list new-value)
   "\(jsown-update-in object \(\"key1\" \"key2\"\) \"new-value\"\)"
